@@ -113,3 +113,47 @@ jobs:
 
           docker push \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+  update-gitops:
+    name: Update GitOps image tag
+    runs-on: ubuntu-latest
+    needs: container
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout GitOps repository
+        uses: actions/checkout@v4
+        with:
+          repository: Uttam963/devops-interview-gitops
+          token: ${{ secrets.GITOPS_TOKEN }}
+          path: gitops
+
+      - name: Update development image tag
+        working-directory: gitops
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          sed -i -E \
+            "s|^([[:space:]]*tag:).*|\1 \"${IMAGE_TAG}\"|" \
+            charts/devops-api/values-dev.yaml
+
+          grep -A 3 "^image:" \
+            charts/devops-api/values-dev.yaml
+
+      - name: Commit and push GitOps change
+        working-directory: gitops
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          if git diff --quiet; then
+            echo "GitOps repository already uses ${IMAGE_TAG}"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add charts/devops-api/values-dev.yaml
+          git commit -m "Deploy devops API image ${IMAGE_TAG}"
+          git push origin main
