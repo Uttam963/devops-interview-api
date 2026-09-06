@@ -16,7 +16,7 @@ def home():
         environment=APP_ENV,
         version=APP_VERSION,
         hostname=socket.gethostname(),
-        message="DevOps interview project is running"
+        message="Deployed automatically through GitHub Actions and Argo CD"
     )
 
 
