@@ -7,7 +7,14 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt \
+RUN python -m pip install --no-cache-dir --upgrade \
+      pip \
+      "setuptools>=78.1.1" \
+      "msgpack>=1.2.1" \
+    && python -m pip install --no-cache-dir -r requirements.txt \
+    && python -m pip check \
+    && python -m pip uninstall --yes pip setuptools \
+    && rm -rf /root/.cache/pip \
     && groupadd --gid 10001 appgroup \
     && useradd --uid 10001 \
                --gid 10001 \

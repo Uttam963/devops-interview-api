@@ -50,11 +50,15 @@ jobs:
             --tag devops-interview-api:${{ github.sha }} \
             .
 
-      - name: Verify dependency versions
+      - name: Verify runtime and dependency
         run: |
           docker run --rm \
             devops-interview-api:${{ github.sha }} \
-            python -m pip show setuptools msgpack
+            python -c "import msgpack; print('msgpack:', msgpack.__version__)"
+
+          docker run --rm \
+            devops-interview-api:${{ github.sha }} \
+            python -c "from app import app; print('Application import successful')"
 
       - name: Export container filesystem
         shell: bash
