@@ -45,8 +45,16 @@ jobs:
       - name: Build container image
         run: |
           docker build \
+            --pull \
+            --no-cache \
             --tag devops-interview-api:${{ github.sha }} \
             .
+
+      - name: Verify dependency versions
+        run: |
+          docker run --rm \
+            devops-interview-api:${{ github.sha }} \
+            python -m pip show setuptools msgpack
 
       - name: Scan image with Trivy
         uses: aquasecurity/trivy-action@master
